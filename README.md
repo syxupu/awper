@@ -1,75 +1,77 @@
 # AWPER
 
-AWPER 是一个用于 **Counter-Strike 2 专用服务器**的 AWP 横拉训练插件。管理员可以直接在官方地图中记录玩家站位、Bot 起点和终点，保存为可复用的训练轨迹；玩家加载轨迹后，通过固定摄像机确认视角，并反复练习 Bot 的两点横向移动。
+[English](README.md) · [Русский](README.ru.md) · [中文](README.zh-CN.md)
 
-当前版本：**1.1.0**
+AWPER is an AWP horizontal-peek training plugin for **Counter-Strike 2 dedicated servers**. Administrators can record player positions, Bot start and end points directly in official maps, and save them as reusable training tracks. Players load a track, confirm their view through a fixed camera, and repeatedly practice a Bot's two-point lateral movement.
 
-> 本项目是社区插件，与 Valve 无隶属或背书关系。它不是创意工坊地图，必须运行在安装了 CounterStrikeSharp 的 CS2 专用服务器上。
+Current version: **1.1.0**
 
-## 主要功能
+> This is a community plugin with no affiliation or endorsement from Valve. It is not a Workshop map and must run on a CS2 dedicated server with CounterStrikeSharp installed.
 
-- 在官方地图内创建、验证、保存和加载训练轨迹。
-- 通过 `!edit <名称>` 进入独立编辑模式，避免普通玩家误修改点位。
-- 记录 `EditAnchor`、`PlayerAnchor`、`BotStart`、`BotEnd` 和可选的 `BotJiggle`。
-- Mouse4 单击切换固定摄像机预览；摄像机位于 `PlayerAnchor`，玩家模型保持按键瞬间的朝向。
-- Bot 使用真实 Pawn 与 CS2-Bot-Controller 原生输入回放移动，不使用逐 Tick Teleport。
-- Bot 依据服务器实时 `sv_accelerate`、`sv_friction`、`sv_stopspeed` 和 TickInterval 从静止加速。
-- 支持单次指定速度启动，不修改轨迹本身：`!start_speed <1-215>`。
-- 支持复制轨迹并只修改名称和速度：`!copy <原名称> <新名称> <1-215>`。
-- F5 打开 CounterStrikeSharp 原生中央菜单；聊天指令始终可以作为备用入口。
-- 保存、加载和启动前执行站立空间、地面、路径扫掠和视线检查，验证失败时拒绝运行。
-- 训练结束后幂等清理 Bot 与掉落武器，支持连续轮次。
+## Main features
 
-## 运行逻辑
+- Create, validate, save, and load training tracks inside official maps.
+- Enter an isolated editing mode with `!edit <name>` to prevent ordinary players from accidentally modifying points.
+- Record `EditAnchor`, `PlayerAnchor`, `BotStart`, `BotEnd`, and an optional `BotJiggle`.
+- Mouse4 single-click toggles the fixed-camera preview; the camera sits at `PlayerAnchor` and the player model keeps the facing it had at the moment the key was pressed.
+- The Bot replays movement using a real Pawn and CS2-Bot-Controller native input, not per-tick teleportation.
+- The Bot accelerates from a standstill according to the server's live `sv_accelerate`, `sv_friction`, `sv_stopspeed`, and tick interval.
+- Start a single round at a specified speed without modifying the track itself: `!start_speed <1-215>`.
+- Copy a track and change only its name and speed: `!copy <original> <new> <1-215>`.
+- F5 opens the native CounterStrikeSharp central menu; chat commands always remain available as a fallback.
+- Standing space, ground, path sweep, and line-of-sight checks run before save, load, and start; a failing validation refuses to run.
+- Idempotent cleanup of Bots and dropped weapons after each round, supporting consecutive rounds.
+
+## Runtime logic
 
 ```text
-管理员创建轨迹
-  !edit <名称>
+Admin creates a track
+  !edit <name>
         │
-        ├─ EditAnchor       编辑入口
-        ├─ PlayerAnchor     玩家训练位置 / 摄像机位置
-        ├─ BotStart         Bot 起点
-        ├─ BotEnd           Bot 终点
-        └─ BotJiggle        可选急停点
+        ├─ EditAnchor       Editing entry point
+        ├─ PlayerAnchor     Player training / camera position
+        ├─ BotStart         Bot start point
+        ├─ BotEnd           Bot end point
+        └─ BotJiggle        Optional jiggle point
         │
         ▼
-  实时 Ray-Trace 验证 ──失败──> 拒绝保存并说明原因
-        │通过
+  Live Ray-Trace validation ──fails──> Refuse to save and explain why
+        │ passes
         ▼
-  保存为 profiles/<地图>/<名称>.json
+  Save as profiles/<map>/<name>.json
 
-玩家训练
-  !load <名称> → Mouse4 预览 → Mouse5 / !start
+Player trains
+  !load <name> → Mouse4 preview → Mouse5 / !start
         │
         ▼
-  倒计时 → 随机延迟 → 创建 Bot → 原生输入回放移动
+  Countdown → random delay → spawn Bot → native-input replay
         │
-        ├─ Bot 死亡
-        ├─ 到达终点
-        ├─ 卡住 / 超时
-        └─ 玩家中止
+        ├─ Bot dies
+        ├─ Reaches the end
+        ├─ Gets stuck / times out
+        └─ Player aborts
         │
         ▼
-  清理 Bot 和武器 → 恢复玩家 → 可以开始下一轮
+  Clean up Bot and weapons → restore player → next round
 ```
 
-更完整的命令参数与编辑顺序见 [command.md](command.md)。
+See [command.md](command.md) for the complete command parameters and editing order.
 
-## 运行要求
+## Requirements
 
-- CS2 专用服务器。
-- [Metamod:Source](https://www.sourcemm.net/)。
-- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) API 1.0.373 或更高。
-- [CS2-Bot-Controller](https://github.com/XBribo/CS2-Bot-Controller)，当前接口 ABI 19。
-- [FUNPLAY Ray-Trace](https://github.com/FUNPLAY-pro-CS2/Ray-Trace)，包括 native、RayTraceImpl 和共享 RayTraceApi。
-- 目标 CS2 版本需要支持 `cs_player_camera`。
+- A CS2 dedicated server.
+- [Metamod:Source](https://www.sourcemm.net/).
+- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) API 1.0.373 or higher.
+- [CS2-Bot-Controller](https://github.com/XBribo/CS2-Bot-Controller), current interface ABI 19.
+- [FUNPLAY Ray-Trace](https://github.com/FUNPLAY-pro-CS2/Ray-Trace), including the native, RayTraceImpl, and the shared RayTraceApi.
+- The target CS2 version must support `cs_player_camera`.
 
-发布包不会重复分发上述依赖的二进制文件，请按各上游项目的说明分别安装。
+The release package does not redistribute the binaries of the dependencies above; install each one following its upstream instructions.
 
-## 安装
+## Installation
 
-1. 从 GitHub Releases 下载 `AwperTrainer-1.1.0.zip` 并解压。
-2. 将以下运行文件放入服务器：
+1. Download `AwperTrainer-1.1.0.zip` from GitHub Releases and extract it.
+2. Place the runtime files on the server:
 
 ```text
 game/csgo/addons/counterstrikesharp/plugins/AwperTrainer/
@@ -79,7 +81,7 @@ game/csgo/addons/counterstrikesharp/plugins/AwperTrainer/
 └─ AwperTrainer.runtimeconfig.json
 ```
 
-3. 将发布包中的桥接资源复制到对应服务器目录：
+3. Copy the bridge assets from the release package to the matching server directories:
 
 ```text
 resources/awper_camera.vjs_c  -> game/csgo/scripts/awper/awper_camera.vjs_c
@@ -88,24 +90,24 @@ resources/awper_hud.vxml_c    -> game/csgo/panorama/layout/custom_game/awper_hud
 resources/awper_hud.vcss_c    -> game/csgo/panorama/styles/custom_game/awper_hud.vcss_c
 ```
 
-4. 确认 BotController 和 RayTrace 的插件、共享 API 与原生模块已经安装，然后重启服务器。
-5. 进入服务器后输入 `!status`，确认 BotController、RayTrace 和 camera 均可用。
+4. Confirm that the BotController and RayTrace plugins, shared API, and native modules are installed, then restart the server.
+5. Join the server and type `!status` to confirm that BotController, RayTrace, and camera are all available.
 
-插件配置位于：
+The plugin configuration is located at:
 
 ```text
 game/csgo/addons/counterstrikesharp/configs/plugins/AwperTrainer/AwperTrainer.json
 ```
 
-训练轨迹按地图分别保存：
+Training tracks are saved per map:
 
 ```text
 game/csgo/addons/counterstrikesharp/configs/plugins/AwperTrainer/profiles/<map>/<name>.json
 ```
 
-## 玩家按键
+## Player keybindings
 
-客户端控制台可以直接设置：
+You can set these directly in the client console:
 
 ```cfg
 bind "F5" "css_ui"
@@ -113,37 +115,37 @@ bind "MOUSE4" "css_preview_toggle"
 bind "MOUSE5" "css_start"
 ```
 
-也可以把发布包中的 `awper_bindings.cfg` 放入客户端 `game/csgo/cfg/`，然后执行：
+Alternatively, place `awper_bindings.cfg` from the release package into the client's `game/csgo/cfg/`, then run:
 
 ```text
 exec awper_bindings
 ```
 
-F5 使用的是服务器提供的 CounterStrikeSharp 中央菜单。即使没有 F5 绑定，也可以在聊天框输入 `!ui` 打开菜单。
+F5 uses the CounterStrikeSharp central menu provided by the server. Even without the F5 binding, you can open the menu by typing `!ui` in chat.
 
-## 快速开始
+## Quick start
 
-加载已有轨迹：
+Load an existing track:
 
 ```text
 !list
 !load mirage_awp_1
 ```
 
-加载后先按 Mouse4 检查摄像机，再按 Mouse5 开始训练。也可以使用聊天命令：
+After loading, press Mouse4 first to check the camera, then Mouse5 to start training. You can also use chat commands:
 
 ```text
 !preview_toggle
 !start
 ```
 
-以 180 units/s 只启动本轮，不修改原轨迹：
+Start only this round at 180 units/s without changing the saved track:
 
 ```text
 !start_speed 180
 ```
 
-## 创建轨迹
+## Creating a track
 
 ```text
 !edit mirage_awp_1
@@ -158,73 +160,73 @@ F5 使用的是服务器提供的 CounterStrikeSharp 中央菜单。即使没有
 !save
 ```
 
-建议顺序：
+Recommended order:
 
-1. 在安全位置进入编辑模式并记录 `EditAnchor`。
-2. 走到实际训练位置，记录 `PlayerAnchor`。
-3. 走到 Bot 出现位置，记录 `BotStart`。
-4. 走到横拉结束位置，记录 `BotEnd`。
-5. 根据需要记录 Bot 面向与急停点。
-6. 使用 Mouse4 预览，再执行 `!validate` 和 `!save`。
+1. Enter edit mode in a safe position and record `EditAnchor`.
+2. Walk to the actual training position and record `PlayerAnchor`.
+3. Walk to where the Bot should appear and record `BotStart`.
+4. Walk to where the peek ends and record `BotEnd`.
+5. Record the Bot's facing and jiggle point as needed.
+6. Preview with Mouse4, then run `!validate` and `!save`.
 
-轨迹名称只允许英文字母、数字、下划线和连字符，长度为 1–64 个字符。
+Track names may only contain English letters, digits, underscores, and hyphens, from 1 to 64 characters long.
 
-## 常用命令
+## Common commands
 
-| 指令 | 作用 |
+| Command | Purpose |
 |---|---|
-| `!help` | 显示简要帮助 |
-| `!ui` | 打开或关闭 F5 中央菜单 |
-| `!status` | 查看插件、依赖和当前训练状态 |
-| `!list` | 列出当前地图的轨迹 |
-| `!load <名称>` | 加载轨迹 |
-| `!start` | 使用轨迹保存的速度开始 |
-| `!start_speed <1-215>` | 只为本轮覆盖 Bot 速度 |
-| `!copy <原名称> <新名称> <1-215>` | 复制轨迹，只改变名称和速度 |
-| `!abort` | 中止训练或编辑并恢复玩家 |
-| `!maps` | 查看允许切换的地图 |
+| `!help` | Show brief help |
+| `!ui` | Open or close the F5 central menu |
+| `!status` | Show plugin, dependency, and current training state |
+| `!list` | List tracks for the current map |
+| `!load <name>` | Load a track |
+| `!start` | Start using the track's saved speed |
+| `!start_speed <1-215>` | Override the Bot speed for this round only |
+| `!copy <original> <new> <1-215>` | Copy a track, changing only name and speed |
+| `!abort` | Abort training or editing and restore the player |
+| `!maps` | List maps you are allowed to switch to |
 
-所有聊天命令的 `!` 均可换为 `/`；控制台形式是在名称前加 `css_`，例如 `!start` 对应 `css_start`。AWPER 指令不再使用旧的 `awper_` 前缀。
+Every chat command's `!` can be replaced with `/`; the console form adds a `css_` prefix to the name, e.g. `!start` corresponds to `css_start`. AWPER commands no longer use the old `awper_` prefix.
 
-## Bot 移动模型
+## Bot movement model
 
-配置中的速度是目标地速上限。每 Tick 先计算地面摩擦，再按 Source 地面加速模型沿路径方向增加速度，因此 Bot 不会在第一帧瞬间达到 215 units/s。较短的路径可能在达到目标速度前已经结束，这是正常结果。
+The configured speed is the target ground-speed ceiling. Each tick the plugin first applies ground friction, then accelerates along the path direction using the Source ground-acceleration model, so the Bot does not reach 215 units/s on the very first frame. A short path may end before the target speed is reached — that is expected.
 
-插件不会通过逐 Tick Teleport 模拟移动；如果 BotController 接口或原生能力不可用，训练将直接拒绝启动。
+The plugin does not simulate movement through per-tick teleportation; if the BotController interface or native capability is unavailable, training refuses to start.
 
-## 构建与测试
+## Build & test
 
-需要 PowerShell 7 和 `.NET SDK 10.0.201`：
+PowerShell 7 and the `.NET SDK 10.0.201` are required:
 
 ```powershell
 pwsh.exe -NoLogo -NoProfile -NonInteractive -File .\build.ps1
 ```
 
-该命令执行 Release 构建、自动化测试、格式检查、PowerShell 语法检查，并生成：
+This runs a Release build, automated tests, formatting checks, and PowerShell syntax checks, and produces:
 
 ```text
 artifacts/AwperTrainer.zip
 ```
 
-## 项目结构
+## Project structure
 
 ```text
-src/AwperTrainer.Core/       轨迹、验证策略和训练状态机
-src/AwperTrainer.Plugin/     CounterStrikeSharp 插件与游戏实体控制
-tests/                       自动化测试
-assets/                      摄像机与 HUD 桥接资源
-config/                      示例配置和按键绑定
-tools/                       部署与安装验证工具
-command.md                   完整中文指令手册
+src/AwperTrainer.Core/        Tracks, validation strategies, and the training state machine
+src/AwperTrainer.Plugin/      CounterStrikeSharp plugin and game-entity control
+tests/                        Automated tests
+assets/                       Camera and HUD bridge assets
+config/                       Example configuration and keybindings
+tools/                        Deployment and installation verification tools
+command.md                    Complete command manual
 ```
 
-## 已知边界
+## Known limitations
 
-- 仓库只提供插件逻辑，不附带官方地图内容或预制七图轨迹。
-- 每张地图、每个训练位置仍需要管理员自行记录并验证轨迹。
-- CS2、CounterStrikeSharp、BotController 或 RayTrace 更新后，应重新执行实机验证。
-- 当前设计一次只运行一个训练会话，适合个人或轮流训练服务器。
+- The repository provides only the plugin logic; it does not ship official map content or pre-made tracks for the seven maps.
+- Each map and each training position still requires an administrator to record and validate the track.
+- After CS2, CounterStrikeSharp, BotController, or RayTrace updates, re-run on-server validation.
+- The current design runs one training session at a time, suited for personal or turn-based training servers.
 
-## 许可
+## License
 
-本项目使用 [AGPL-3.0](LICENSE) 发布，以兼容 CS2-Bot-Controller 的 AGPL-3.0 依赖路径。第三方组件和商标说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+This project is released under [AGPL-3.0](LICENSE) to remain compatible with the AGPL-3.0 dependency path of CS2-Bot-Controller. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for third-party components and trademark notices.

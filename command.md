@@ -1,10 +1,12 @@
-# AWPER 1.1.0 指令手册
+# AWPER 1.1.0 Command Manual
 
-本文列出当前版本全部玩家可使用的 AWPER 指令，包括按键、点位放置、配置管理、摄像机、训练控制和地图切换。
+[English](command.md) · [Русский](command.ru.md) · [中文](command.zh-CN.md)
 
-从本版本开始，所有插件指令都已取消 `awper` 前缀。例如旧指令 `!awper_start` / `css_awper_start` 现改为 `!start` / `css_start`；旧指令不再注册。`exec awper_bindings` 中的 `awper_bindings` 是配置文件名，因此不受此变更影响。
+This document lists every AWPER command available to players in the current version, including keybindings, point placement, configuration management, camera, training control, and map switching.
 
-聊天框中以 `!` 或 `/` 开头；控制台中使用完整的 `css_` 前缀。例如以下三条等价：
+Starting from this version, all plugin commands have dropped the `awper` prefix. For example, the old `!awper_start` / `css_awper_start` is now `!start` / `css_start`; the old commands are no longer registered. The `awper_bindings` in `exec awper_bindings` is a config file name, so it is not affected by this change.
+
+In chat, commands start with `!` or `/`; in the console, use the full `css_` prefix. For example, the following three are equivalent:
 
 ```text
 !start
@@ -12,21 +14,21 @@
 css_start
 ```
 
-## 一、常用按键
+## 1. Common keybindings
 
-| 按键 | 作用 | 对应指令 |
+| Key | Purpose | Command |
 |---|---|---|
-| `F5` | 打开或关闭 AWPER 中央菜单 | `css_ui` |
-| `Mouse4` | 点击切换摄像机预览 | `css_preview_toggle` |
-| `Mouse5` | 开始一轮训练 | `css_start` |
+| `F5` | Open or close the AWPER central menu | `css_ui` |
+| `Mouse4` | Click to toggle the camera preview | `css_preview_toggle` |
+| `Mouse5` | Start a training round | `css_start` |
 
-如果绑定未加载，在控制台执行：
+If the bindings are not loaded, run in the console:
 
 ```text
 exec awper_bindings
 ```
 
-也可以手动绑定：
+You can also bind manually:
 
 ```text
 bind "F5" "css_ui"
@@ -34,470 +36,470 @@ bind "MOUSE4" "css_preview_toggle"
 bind "MOUSE5" "css_start"
 ```
 
-## 二、帮助与前端菜单
+## 2. Help and the front-end menu
 
-| 聊天框指令 | 控制台指令 | 作用 |
+| Chat command | Console command | Purpose |
 |---|---|---|
-| `!help` | `css_help` | 显示简要帮助 |
-| `!ui` | `css_ui` | 打开或关闭 AWPER 中央菜单 |
+| `!help` | `css_help` | Show brief help |
+| `!ui` | `css_ui` | Open or close the AWPER central menu |
 
-打开菜单后，使用屏幕对应的数字键选择。再次按 `F5` 关闭。
+After opening the menu, select with the corresponding number keys on screen. Press `F5` again to close.
 
-F5 主菜单目前包含：
+The F5 main menu currently contains:
 
-1. 开始一轮训练
-2. 切换摄像机预览
-3. 加载本地图配置
-4. 显示当前状态
-5. 设置点位、模式和速度
-6. 切换训练地图
-7. 中止训练并恢复
+1. Start a training round
+2. Toggle the camera preview
+3. Load the current map's configuration
+4. Show the current status
+5. Set points, mode, and speed
+6. Switch training maps
+7. Abort training and restore
 
-F5 菜单调用的仍然是本文列出的同一批指令，因此不会绕过权限和配置验证。
+The F5 menu invokes the same set of commands listed in this document, so it does not bypass permission or configuration validation.
 
-## 三、放置训练点位
+## 3. Placing training points
 
-点位编辑指令需要 `@css/config` 管理权限，并且玩家必须存活。
+Point-editing commands require the `@css/config` admin permission, and the player must be alive.
 
-### 1. 进入编辑模式并声明轨道名称
+### 3.1 Enter edit mode and declare the track name
 
 ```text
-!edit <轨道名称>
+!edit <track name>
 ```
 
-例如：
+For example:
 
 ```text
 !edit mirage_awp_1
 ```
 
-作用：
+Effects:
 
-- 创建一个命名编辑会话；未执行该指令时，所有标点、模式、速度、验证和保存指令都会被拒绝。
-- 名称长度为 1～64 个字符，只允许英文字母、数字、下划线 `_` 和连字符 `-`。
-- 如果名称已经存在，插件会提示保存时将覆盖原轨道。
-- 一个玩家不能同时存在两个配置会话；需要先执行 `!abort` 才能重新进入编辑模式。
+- Creates a named editing session; without this command, all point, mode, speed, validate, and save commands are rejected.
+- The name is 1–64 characters long and may only contain English letters, digits, underscores `_`, and hyphens `-`.
+- If the name already exists, the plugin warns that saving will overwrite the existing track.
+- A player cannot hold two configuration sessions at once; you must run `!abort` before re-entering edit mode.
 
-### 2. 记录编辑入口 EditAnchor
+### 3.2 Record the edit entry point — EditAnchor
 
 ```text
 !set_edit_anchor
 ```
 
-控制台形式：
+Console form:
 
 ```text
 css_set_edit_anchor
 ```
 
-作用：
+Effects:
 
-- 记录玩家当前脚下位置和视角方向。
-- 这是点位编辑的入口位置。
-- 记录 PlayerAnchor 后，插件会把玩家传送回这里，以便继续步行放置 Bot 路径。
-- 必须先使用 `!edit <轨道名称>` 进入编辑模式。
+- Records the player's current feet position and view direction.
+- This is the entry point for point editing.
+- After recording PlayerAnchor, the plugin teleports the player back here so they can continue walking to place the Bot path.
+- You must first enter edit mode with `!edit <track name>`.
 
-推荐选择安全、方便移动到 Bot 路径的位置。
+Choose a safe position from which it is convenient to reach the Bot path.
 
-### 3. 记录玩家训练点 PlayerAnchor
+### 3.3 Record the player training point — PlayerAnchor
 
 ```text
 !set_player_anchor
 ```
 
-作用：
+Effects:
 
-- 记录玩家训练时站立的位置。
-- 记录摄像机眼睛位置。
-- 记录玩家当时的视角方向。
-- 以后摄像机预览会固定在这里。
-- 记录完成后，玩家会自动传送回 EditAnchor。
+- Records the position where the player stands during training.
+- Records the camera eye position.
+- Records the player's view direction at that moment.
+- The camera preview is later fixed here.
+- After recording, the player is automatically teleported back to EditAnchor.
 
-正确操作：
+Correct procedure:
 
-1. 先执行 `!edit <轨道名称>`。
-2. 执行 `!set_edit_anchor`。
-3. 走到实战中 AWP 玩家应该站的位置。
-4. 将准星对准预期的 Bot 出现方向。
-5. 执行 `!set_player_anchor`。
+1. Run `!edit <track name>` first.
+2. Run `!set_edit_anchor`.
+3. Walk to where an AWP player should stand in a real match.
+4. Aim the crosshair toward where the Bot is expected to appear.
+5. Run `!set_player_anchor`.
 
-### 4. 记录 Bot 起点 BotStart
+### 3.4 Record the Bot start point — BotStart
 
 ```text
 !set_bot_start
 ```
 
-作用：
+Effects:
 
-- 把玩家当前脚下位置记录为 Bot 起点。
-- Bot 每轮生成后会被放到这里。
-- 插件会立即进行站立空间、地面和平整度探测。
+- Records the player's current feet position as the Bot start point.
+- The Bot is placed here at the start of each round.
+- The plugin immediately probes standing space, ground, and flatness.
 
-应当站在 Bot 横拉开始前、掩体内侧的位置执行。
+Stand where the Bot should be before the peek begins, on the inner side of cover.
 
-### 5. 记录 Bot 终点 BotEnd
+### 3.5 Record the Bot end point — BotEnd
 
 ```text
 !set_bot_end
 ```
 
-作用：
+Effects:
 
-- 把玩家当前脚下位置记录为 Bot 最终移动目标。
-- 直拉模式的主要轨迹为：
+- Records the player's current feet position as the Bot's final movement target.
+- The main path of the direct-peek mode is:
 
 ```text
 BotStart ─────────────→ BotEnd
 ```
 
-Bot 到达终点附近后，本轮训练结束。
+After the Bot reaches the vicinity of the end point, the round ends.
 
-### 6. 记录急停或晃身点 BotJiggle
+### 3.6 Record the jiggle / shoulder point — BotJiggle
 
 ```text
 !set_bot_jiggle
 ```
 
-作用：
+Effects:
 
-- 记录急停模式使用的中间位置。
-- 只有模式 `2` 强制要求这个点。
-- 直拉模式可以不设置。
+- Records the intermediate position used by the jiggle mode.
+- Only mode `2` requires this point.
+- It is not needed for direct-peek mode.
 
-急停模式大致逻辑：
+Jiggle mode roughly works as:
 
 ```text
 BotStart ⇄ BotJiggle
-    重复 1～4 次
+    repeated 1–4 times
 BotStart ─────────→ BotEnd
 ```
 
-### 7. 记录 Bot 面向方向
+### 3.7 Record the Bot's facing direction
 
 ```text
 !set_bot_facing
 ```
 
-作用：
+Effects:
 
-- 读取玩家当前视角的水平角度。
-- 把这个角度保存为 Bot 移动时的面向方向。
-- 只记录 Yaw，不记录玩家站立的位置。
+- Reads the player's current horizontal view angle.
+- Saves that angle as the Bot's facing while moving.
+- Only the Yaw is recorded, not the player's standing position.
 
-操作时将视角转向希望 Bot 面对的方向，然后执行该指令。这个字段不是必须手动设置；如果省略，插件会自动让 Bot 从起点面向 PlayerAnchor。
+Turn your view toward the direction you want the Bot to face, then run this command. This field is not mandatory; if omitted, the plugin automatically makes the Bot face PlayerAnchor from its start point.
 
-## 四、训练模式
+## 4. Training modes
 
-### 直拉模式
+### Direct-peek mode
 
 ```text
 !mode 1
 ```
 
-内部名称为 `DirectPeek`，轨迹为：
+Internal name `DirectPeek`, path:
 
 ```text
 BotStart ─────────→ BotEnd
 ```
 
-这是默认模式，不要求 BotJiggle。
+This is the default mode and does not require BotJiggle.
 
-### 急停后横拉模式
+### Jiggle-then-peek mode
 
 ```text
 !mode 2
 ```
 
-内部名称为 `JiggleThenPeek`。运行逻辑：
+Internal name `JiggleThenPeek`. Runtime logic:
 
-1. Bot 在 BotStart 与 BotJiggle 之间随机晃动。
-2. 默认随机重复 1～4 次。
-3. 每次端点停顿约 0.05～0.20 秒。
-4. 最后从 BotStart 正式移动到 BotEnd。
+1. The Bot randomly shuffles between BotStart and BotJiggle.
+2. By default it repeats 1–4 times at random.
+3. Each endpoint pause is about 0.05–0.20 seconds.
+4. Finally it moves from BotStart to BotEnd.
 
-模式 2 必须先记录：
+Mode 2 requires recording first:
 
 ```text
 !set_bot_jiggle
 ```
 
-## 五、Bot 移动速度
+## 5. Bot movement speed
 
-格式：
+Format:
 
 ```text
 !speed <1-215>
 ```
 
-可用范围为 `1–215 units/s`。
+The allowed range is `1–215 units/s`.
 
-| 指令 | 速度 | 用途 |
+| Command | Speed | Purpose |
 |---|---:|---|
-| `!speed 215` | 215 | AK-47 正常持枪全速移动，也是默认值 |
-| `!speed 180` | 180 | 中等速度 |
-| `!speed 150` | 150 | 慢速练习 |
+| `!speed 215` | 215 | AK-47 normal full-speed movement, also the default |
+| `!speed 180` | 180 | Medium speed |
+| `!speed 150` | 150 | Slow practice |
 
-该值是插件的目标地面速度上限，不是简单修改 Bot AI 速度。Bot 会从静止开始，按服务器当前的 `sv_accelerate`、`sv_friction`、`sv_stopspeed` 和 tick interval 逐帧加速；因此很短的轨道可能在达到目标速度前就已经抵达终点。
+This value is the plugin's target ground-speed ceiling, not a direct modification of the Bot AI speed. The Bot starts from rest and accelerates frame by frame according to the server's current `sv_accelerate`, `sv_friction`, `sv_stopspeed`, and tick interval; therefore a very short track may reach its end before reaching the target speed.
 
-## 六、验证与保存配置
+## 6. Validating and saving a configuration
 
-### 验证当前配置
+### Validate the current configuration
 
 ```text
 !validate
 ```
 
-作用：
+Effects:
 
-- 检查必需点位是否完整。
-- 检查当前地图是否匹配。
-- 检查 BotStart、BotEnd、BotJiggle 的站立空间和地面。
-- 检查目标速度是否合法。
-- 检查急停模式是否存在 BotJiggle。
-- 进行实时 RayTrace 地图几何验证。
+- Checks that the required points are complete.
+- Checks that the current map matches.
+- Checks standing space and ground for BotStart, BotEnd, and BotJiggle.
+- Checks that the target speed is legal.
+- Checks that jiggle mode has a BotJiggle.
+- Runs live RayTrace map-geometry validation.
 
-视线不直接可见只会产生 `los.start` 或 `los.end` 警告，不会阻止保存，因为 Bot 起点可以位于掩体后。
+A line of sight that is not directly visible only produces a `los.start` or `los.end` warning and does not block saving, because the Bot start point may be behind cover.
 
-### 保存配置
+### Save the configuration
 
 ```text
 !save
 ```
 
-保存使用 `!edit <轨道名称>` 进入编辑模式时声明的名称，不再接收名称参数。
+Save uses the name declared when entering edit mode with `!edit <track name>`; it no longer accepts a name argument.
 
-保存时插件会自动：
+On save, the plugin automatically:
 
-1. 构建完整配置。
-2. 执行实时地图验证。
-3. 写入当前地图配置目录。
-4. 自动加载刚保存的配置。
-5. 恢复玩家到 PlayerAnchor。
-6. 退出编辑模式。
+1. Builds the complete configuration.
+2. Runs live map validation.
+3. Writes to the current map's configuration directory.
+4. Auto-loads the just-saved configuration.
+5. Restores the player to PlayerAnchor.
+6. Exits edit mode.
 
-必需字段：
+Required fields:
 
 - EditAnchor
 - PlayerAnchor
 - BotStart
 - BotEnd
 
-模式 2 额外要求 BotJiggle。BotFacing 可以省略。
+Mode 2 additionally requires BotJiggle. BotFacing may be omitted.
 
-## 七、配置文件管理
+## 7. Configuration file management
 
-### 列出当前地图所有配置
+### List all configurations for the current map
 
 ```text
 !list
 ```
 
-只显示当前地图的配置。例如，在 `de_mirage` 不会显示 `de_dust2` 的配置。
+Shows only the current map's configurations. For example, on `de_mirage` it will not show `de_dust2` configurations.
 
-### 加载配置
+### Load a configuration
 
 ```text
-!load <配置名称>
+!load <config name>
 ```
 
-例如：
+For example:
 
 ```text
 !load mirage_awp_1
 ```
 
-加载时插件会重新进行当前地图的实时验证。加载成功后还不能直接开始，必须完成一次摄像机验证：
+On load, the plugin re-runs live validation for the current map. Loading alone does not let you start immediately; you must complete one camera verification:
 
-1. 点击 `Mouse4` 进入预览。
-2. 检查摄像机和 Bot 幽灵位置。
-3. 再点击一次 `Mouse4` 退出预览。
-4. 点击 `Mouse5` 或执行 `!start`。
+1. Click `Mouse4` to enter preview.
+2. Check the camera and the Bot ghost position.
+3. Click `Mouse4` again to exit preview.
+4. Click `Mouse5` or run `!start`.
 
-### 删除配置
+### Delete a configuration
 
 ```text
-!delete <配置名称>
+!delete <config name>
 ```
 
-例如：
+For example:
 
 ```text
 !delete mirage_awp_1
 ```
 
-要求：
+Requirements:
 
-- 拥有 `@css/config` 权限。
-- 只能删除当前地图的配置。
-- 如果删除的配置正在某个编辑会话中使用，插件会清除其已加载状态。
+- `@css/config` permission.
+- You can only delete configurations of the current map.
+- If the deleted configuration is in use by an editing session, the plugin clears its loaded state.
 
-### 复制配置并修改速度
+### Copy a configuration and change its speed
 
 ```text
-!copy <原名称> <新名称> <1-215>
+!copy <original> <new> <1-215>
 ```
 
-例如：
+For example:
 
 ```text
 !copy mirage_awp_1 mirage_awp_slow 150
 ```
 
-该操作只修改复制品的轨道名称和 Bot 目标速度。地图、所有锚点、Bot 路径、面向、移动模式、倒计时、随机延迟及其他训练参数均保持不变。
+This operation changes only the copy's track name and Bot target speed. The map, all anchors, Bot path, facing, movement mode, countdown, random delay, and other training parameters remain unchanged.
 
-要求：
+Requirements:
 
-- 拥有 `@css/config` 权限。
-- 原轨道属于当前地图并且确实存在。
-- 新名称必须符合轨道命名规则，而且不能与已有轨道重名；指令不会覆盖目标轨道。
-- 速度范围为 `1–215 units/s`。
-- 复制完成后不会自动加载复制品，也不会改变当前已加载的轨道。
+- `@css/config` permission.
+- The original track belongs to the current map and actually exists.
+- The new name must follow the track naming rules and must not collide with an existing track; the command will not overwrite the target track.
+- The speed range is `1–215 units/s`.
+- After copying, the copy is not auto-loaded, and the currently loaded track is not changed.
 
-## 八、摄像机预览
+## 8. Camera preview
 
-### 点击切换预览
+### Click to toggle preview
 
 ```text
 !preview_toggle
 ```
 
-或点击 `Mouse4`。
+Or click `Mouse4`.
 
-逻辑：
+Logic:
 
-- 第一次执行：进入固定摄像机视角。
-- 没有第二次执行：一直保持摄像机视角。
-- 第二次执行：退出摄像机并完成本次会话验证。
+- First execution: enter the fixed-camera view.
+- No second execution: the camera view is maintained.
+- Second execution: exit the camera and complete this session's verification.
 
-预览画面：
+Preview screen:
 
-- 摄像机固定在 PlayerAnchor。
-- 摄像机朝向 Bot 点位。
-- 幽灵模型标记 Bot 的预期位置。
+- The camera is fixed at PlayerAnchor.
+- The camera faces the Bot point.
+- A ghost model marks the Bot's expected position.
 
-### 强制进入预览
+### Force-enter preview
 
 ```text
 !preview_on
 ```
 
-### 强制退出预览
+### Force-exit preview
 
 ```text
 !preview_off
 ```
 
-成功退出后，当前会话会被标记为：
+After a successful exit, the current session is marked:
 
 ```text
 camera=verified-this-session
 ```
 
-### 旧版长按兼容指令
+### Legacy hold-to-preview commands
 
-控制台或绑定可以继续使用：
+The console or a binding can still use:
 
 ```text
 +preview
 -preview
 ```
 
-例如：
+For example:
 
 ```text
 bind "MOUSE4" "+preview"
 ```
 
-不过当前默认绑定已经改为点击切换：
+However, the current default binding is now click-to-toggle:
 
 ```text
 bind "MOUSE4" "css_preview_toggle"
 ```
 
-预览至少要求已经记录或加载 PlayerAnchor。新建配置时，只要 EditAnchor 和 PlayerAnchor 已存在，就可以提前查看摄像机，不必等 BotStart、BotEnd 全部设置完成。
+Preview requires at least a recorded or loaded PlayerAnchor. When creating a new configuration, as long as EditAnchor and PlayerAnchor exist, you can preview the camera early without waiting for BotStart and BotEnd to be fully set.
 
-开启预览时，摄像机固定在 PlayerAnchor 并看向 BotStart；玩家 Pawn 的朝向则冻结为按下 `Mouse4` 那一刻的朝向，不会被摄像机角度或 PlayerAnchor 保存的视角改写。退出预览后仍恢复该朝向。
+When preview is on, the camera is fixed at PlayerAnchor and faces BotStart; the player Pawn's facing is frozen at the facing it had the moment Mouse4 was pressed, and is not overwritten by the camera angle or the PlayerAnchor's saved view. It is restored after exiting preview.
 
-## 九、开始和终止训练
+## 9. Starting and stopping training
 
-### 开始一轮训练
+### Start a training round
 
 ```text
 !start
 ```
 
-或点击 `Mouse5`。
+Or click `Mouse5`.
 
-开始条件：
+Start conditions:
 
-- 玩家存活。
-- 当前地图属于白名单。
-- 已加载通过验证的配置。
-- BotController ABI 兼容。
-- RayTrace 验证通过。
-- 本次会话已经完成摄像机预览验证。
-- 当前没有另一轮训练正在运行。
+- The player is alive.
+- The current map is on the whitelist.
+- A validated configuration is loaded.
+- BotController ABI is compatible.
+- RayTrace validation passes.
+- This session has completed the camera preview verification.
+- No other training round is currently running.
 
-开始后：
+After starting:
 
-1. 关闭 F5 菜单和摄像机。
-2. 清理现有 Bot。
-3. 创建敌方 Bot。
-4. 给 Bot 配置 AK-47。
-5. 等待 Bot Pawn 和模型稳定。
-6. 进入 3 秒倒计时。
-7. 再等待约 0.5～3.0 秒随机延迟。
-8. Bot 按配置轨迹移动。
-9. Bot 被击杀或到达终点后完成本轮。
-10. 插件清理本轮 Bot、掉落 AK 和相关实体。
+1. Close the F5 menu and camera.
+2. Clean up existing Bots.
+3. Create an enemy Bot.
+4. Give the Bot an AK-47.
+5. Wait for the Bot Pawn and model to stabilize.
+6. Enter a 3-second countdown.
+7. Wait another ~0.5–3.0 second random delay.
+8. The Bot moves along the configured track.
+9. The round completes when the Bot is killed or reaches the end.
+10. The plugin cleans up this round's Bot, dropped AK, and related entities.
 
-### 以指定速度强制开始一轮
+### Force-start a round at a specified speed
 
 ```text
 !start_speed <1-215>
 ```
 
-例如：
+For example:
 
 ```text
 !start_speed 150
 ```
 
-该指令与 `!start` 使用相同的已加载轨道和启动条件，但只在本轮运行时把 Bot 目标速度替换为指定值。它不会修改磁盘中的轨道，也不会修改当前会话加载的原轨道；本轮结束后再次执行 `!start`，仍会恢复使用轨道原本保存的速度。
+This command uses the same loaded track and start conditions as `!start`, but replaces the Bot target speed with the specified value for this round only. It does not modify the track on disk, nor the originally loaded track in the current session; running `!start` again after this round ends still uses the track's originally saved speed.
 
-### 中止训练或编辑
+### Abort training or editing
 
 ```text
 !abort
 ```
 
-作用：
+Effects:
 
-- 中止当前训练轮次。
-- 关闭 F5 菜单。
-- 退出摄像机预览。
-- 清除当前玩家的点位编辑会话。
-- 将玩家恢复到可恢复位置。
-- 清理训练 Bot 和插件持有的 AK。
+- Aborts the current training round.
+- Closes the F5 menu.
+- Exits the camera preview.
+- Clears the current player's point-editing session.
+- Restores the player to a recoverable position.
+- Cleans up the training Bot and the plugin's held AK.
 
-如果想从头重新放置点位，也应先执行这条指令。
+Run this command first if you want to place points from scratch again.
 
-## 十、查看运行状态
+## 10. Viewing the running status
 
 ```text
 !status
 ```
 
-显示内容包括：
+Displays:
 
-- `bot=`：BotController 兼容状态。
-- `world=`：RayTrace 地图验证状态。
-- `camera=`：本次会话是否完成摄像机验证。
-- `editing=`：当前正在编辑的命名轨道；未编辑时为 `none`。
-- `runtime=`：当前训练状态。
-- `native=`：BotController 原生调用诊断信息。
+- `bot=`: BotController compatibility status.
+- `world=`: RayTrace map-validation status.
+- `camera=`: whether this session completed camera verification.
+- `editing=`: the named track currently being edited; `none` when not editing.
+- `runtime=`: the current training state.
+- `native=`: BotController native-call diagnostics.
 
-常见状态：
+Common states:
 
 ```text
 camera=unverified-this-session
@@ -510,15 +512,15 @@ runtime=Countdown
 runtime=Running
 ```
 
-## 十一、地图指令
+## 11. Map commands
 
-### 列出可用地图
+### List available maps
 
 ```text
 !maps
 ```
 
-当前默认地图池：
+Current default map pool:
 
 ```text
 dust2
@@ -530,17 +532,17 @@ nuke
 cache
 ```
 
-输出会标记当前地图。
+The output marks the current map.
 
-### 切换地图
+### Switch maps
 
-格式：
+Format:
 
 ```text
-!map <地图>
+!map <map>
 ```
 
-可以省略 `de_`：
+The `de_` prefix can be omitted:
 
 ```text
 !map mirage
@@ -548,14 +550,14 @@ cache
 !map cache
 ```
 
-也可以使用完整名称：
+Or use the full name:
 
 ```text
 !map de_mirage
 !map de_dust2
 ```
 
-完整可用指令：
+All available commands:
 
 ```text
 !map dust2
@@ -567,25 +569,25 @@ cache
 !map cache
 ```
 
-切图权限：
+Map-switch permission:
 
-- `@css/changemap`，或
-- `@css/config`。
+- `@css/changemap`, or
+- `@css/config`.
 
-切图时插件会：
+When switching maps, the plugin:
 
-1. 关闭所有玩家的 AWPER 菜单。
-2. 关闭所有摄像机。
-3. 中止当前训练。
-4. 恢复并清除所有编辑会话。
-5. 执行 `changelevel de_<地图>`。
+1. Closes every player's AWPER menu.
+2. Closes every camera.
+3. Aborts the current training.
+4. Restores and clears all editing sessions.
+5. Runs `changelevel de_<map>`.
 
-## 十二、权限和使用条件汇总
+## 12. Permission and usage-condition summary
 
-需要 `@css/config` 权限的指令：
+Commands requiring the `@css/config` permission:
 
 ```text
-!edit <名称>
+!edit <name>
 !set_edit_anchor
 !set_player_anchor
 !set_bot_start
@@ -596,116 +598,116 @@ cache
 !speed
 !validate
 !save
-!copy <原名称> <新名称> <1-215>
+!copy <original> <new> <1-215>
 !delete
 ```
 
-切换地图需要 `@css/changemap` 或 `@css/config`：
+Switching maps requires `@css/changemap` or `@css/config`:
 
 ```text
-!map <地图>
+!map <map>
 ```
 
-以下操作要求玩家当前存活：
+The following operations require the player to be alive:
 
-- 打开 F5 菜单。
-- 放置和修改点位。
-- 加载配置。
-- 摄像机预览。
-- 开始训练。
+- Opening the F5 menu.
+- Placing and modifying points.
+- Loading a configuration.
+- Camera preview.
+- Starting training.
 
-## 十三、完整的新点位制作流程
+## 13. Complete new-point workflow
 
-以 `mirage_awp_1` 为例。
+Using `mirage_awp_1` as an example.
 
-先清除旧会话：
+First clear any old session:
 
 ```text
 !abort
 ```
 
-声明轨道名称并进入编辑模式：
+Declare the track name and enter edit mode:
 
 ```text
 !edit mirage_awp_1
 ```
 
-站在方便编辑和行走的位置：
+Stand at a position convenient for editing and walking:
 
 ```text
 !set_edit_anchor
 ```
 
-走到玩家实际架枪位置，调整好视角：
+Walk to the actual AWP holding position and adjust your view:
 
 ```text
 !set_player_anchor
 ```
 
-插件传送回编辑入口后，走到 Bot 起点：
+After the plugin teleports you back to the edit entry point, walk to the Bot start:
 
 ```text
 !set_bot_start
 ```
 
-走到 Bot 终点：
+Walk to the Bot end:
 
 ```text
 !set_bot_end
 ```
 
-如果需要急停模式，走到急停位置：
+If you need jiggle mode, walk to the jiggle position:
 
 ```text
 !set_bot_jiggle
 !mode 2
 ```
 
-如果只需要两点横拉：
+If you only need two-point peeking:
 
 ```text
 !mode 1
 ```
 
-调整视角并记录 Bot 面向：
+Adjust your view and record the Bot facing:
 
 ```text
 !set_bot_facing
 ```
 
-设置正常 AK 速度：
+Set the normal AK speed:
 
 ```text
 !speed 215
 ```
 
-验证并保存：
+Validate and save:
 
 ```text
 !validate
 !save
 ```
 
-摄像机验证：
+Camera verification:
 
 ```text
 !preview_toggle
 !preview_toggle
 ```
 
-开始训练：
+Start training:
 
 ```text
 !start
 ```
 
-下一轮直接再次执行：
+Run again directly for the next round:
 
 ```text
 !start
 ```
 
-## 十四、完整指令速查表
+## 14. Complete command quick-reference
 
 ```text
 !help
@@ -713,7 +715,7 @@ cache
 !maps
 !map <dust2|inferno|mirage|anubis|ancient|nuke|cache>
 
-!edit <名称>
+!edit <name>
 !set_edit_anchor
 !set_player_anchor
 !set_bot_start
@@ -727,9 +729,9 @@ cache
 !save
 
 !list
-!load <名称>
-!copy <原名称> <新名称> <1-215>
-!delete <名称>
+!load <name>
+!copy <original> <new> <1-215>
+!delete <name>
 
 !preview_on
 !preview_off
@@ -741,7 +743,7 @@ cache
 !status
 ```
 
-控制台或按键绑定兼容指令：
+Console or keybinding-compatible commands:
 
 ```text
 +preview
