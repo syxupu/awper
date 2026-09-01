@@ -8,6 +8,10 @@ Current version: **1.1.0**
 
 > This is a community plugin with no affiliation or endorsement from Valve. It is not a Workshop map and must run on a CS2 dedicated server with CounterStrikeSharp installed.
 
+## Demo
+
+A rough, unpolished demo video is available: [demo.mp4](demo.mp4).
+
 ## Main features
 
 - Create, validate, save, and load training tracks inside official maps.
