@@ -1,0 +1,199 @@
+<div id="awper-runtime-logic" class="awper-logic">
+  <h2>AwperTrainer 当前运行逻辑</h2>
+  <div class="viz-controls" role="tablist" aria-label="选择逻辑视图">
+    <button type="button" class="btn btn-primary" role="tab" aria-selected="true" aria-controls="awper-overall" id="awper-tab-overall" data-view="overall">一轮训练</button>
+    <button type="button" class="btn" role="tab" aria-selected="false" aria-controls="awper-movement" id="awper-tab-movement" data-view="movement">底层移动</button>
+    <button type="button" class="btn" role="tab" aria-selected="false" aria-controls="awper-roster" id="awper-tab-roster" data-view="roster">Bot 生成循环</button>
+    <button type="button" class="btn" role="tab" aria-selected="false" aria-controls="awper-findings" id="awper-tab-findings" data-view="findings">问题判断</button>
+  </div>
+
+  <section id="awper-overall" class="awper-panel" role="tabpanel" aria-labelledby="awper-tab-overall">
+    <div class="awper-lane-label">玩家命令</div>
+    <div class="awper-flow awper-flow-start">
+      <div class="awper-node input"><strong>Mouse5 / css_start</strong><span>只创建“一轮”的 RuntimeSession</span></div>
+      <div class="awper-arrow" aria-hidden="true">→</div>
+      <div class="awper-node gate"><strong>启动门禁</strong><span>已加载配置 · CameraVerified · RayTrace · ABI 19 · 无其他轮次</span></div>
+      <div class="awper-arrow" aria-hidden="true">→</div>
+      <div class="awper-node action"><strong>抢占 Bot 环境</strong><span>bot_quota 0 · bot_kick · bot_add_t/ct</span></div>
+    </div>
+
+    <div class="awper-lane-label">状态机 + 每 Tick 执行器</div>
+    <div class="awper-state-strip" role="img" aria-label="Prepare、Countdown、RandomDelay、BotMoving、Finish、Reset 状态顺序">
+      <div class="awper-state"><b>Prepare</b><span>找第一只目标阵营 Bot</span><span>等待 0.5 秒</span><span>绑定 Pawn + All 锁</span><span>传送 Bot 到 Start</span></div>
+      <div class="awper-chevron" aria-hidden="true">›</div>
+      <div class="awper-state"><b>Countdown</b><span>3 秒倒计时</span><span>Bot 不受伤</span><span>All 锁保持</span></div>
+      <div class="awper-chevron" aria-hidden="true">›</div>
+      <div class="awper-state"><b>RandomDelay</b><span>随机 0.5–3 秒</span><span>仍不移动</span></div>
+      <div class="awper-chevron" aria-hidden="true">›</div>
+      <div class="awper-state hot"><b>BotMoving</b><span>每 Tick 读取位置</span><span>重算方向并更新 token</span><span>Aim 锁开 · All 锁关</span><span>距离 ≤ 4 即到达</span></div>
+      <div class="awper-chevron" aria-hidden="true">›</div>
+      <div class="awper-state"><b>Finish</b><span>停止 movement token</span><span>反馈 0.2 秒</span></div>
+      <div class="awper-chevron" aria-hidden="true">›</div>
+      <div class="awper-state"><b>Reset</b><span>释放锁和 token</span><span>bot_kick · quota 0</span><span>清除 RuntimeSession</span></div>
+    </div>
+
+    <div class="awper-exit-grid">
+      <div class="awper-exit"><b>正常出口</b><span>到 End 或 Bot 被击杀 → Finish → Reset</span></div>
+      <div class="awper-exit danger"><b>快速失败出口</b><span>玩家死亡 · 1.5 秒无位移 · 10 秒超时 · API 返回 false → 立即 Reset</span></div>
+      <div class="awper-exit"><b>全程旁路</b><span>每 Tick 写 CSV；每 Tick 删除“不是选中 slot”的其他 Bot</span></div>
+    </div>
+  </section>
+
+  <section id="awper-movement" class="awper-panel" role="tabpanel" aria-labelledby="awper-tab-movement" hidden>
+    <div class="awper-pipeline">
+      <div class="awper-column">
+        <div class="awper-lane-label">AwperTrainer（托管层 OnTick）</div>
+        <div class="awper-step"><b>1. 当前位置 → 目标点</b><span>算世界平面方向</span></div>
+        <div class="awper-down" aria-hidden="true">↓</div>
+        <div class="awper-step"><b>2. 投影到固定 FacingYaw</b><span>forward / left ∈ [-1, 1]</span></div>
+        <div class="awper-down" aria-hidden="true">↓</div>
+        <div class="awper-step"><b>3. “目标速度”只变成油门</b><span>scale = TargetSpeed ÷ 250</span></div>
+        <div class="awper-down" aria-hidden="true">↓</div>
+        <div class="awper-step hot"><b>4. Move()</b><span>Aim 锁 ON → All 锁 OFF → 创建/更新 movement token</span></div>
+      </div>
+
+      <div class="awper-bridge" aria-label="跨插件调用">
+        <span>ABI 19</span>
+        <b>token</b>
+        <span aria-hidden="true">→</span>
+      </div>
+
+      <div class="awper-column">
+        <div class="awper-lane-label">CS2-Bot-Controller（原生层）</div>
+        <div class="awper-step risk"><b>5. CCSBot::Update 必须先运行</b><span>它仍由游戏 Bot AI 生成一份原始命令</span></div>
+        <div class="awper-down" aria-hidden="true">↓</div>
+        <div class="awper-step"><b>6. PlayerRunCommand hook</b><span>按 slot 找到 movement token</span></div>
+        <div class="awper-down" aria-hidden="true">↓</div>
+        <div class="awper-step"><b>7. 只覆盖移动字段</b><span>移动按键 + forwardmove/leftmove = normalized × 450</span></div>
+        <div class="awper-down" aria-hidden="true">↓</div>
+        <div class="awper-step"><b>8. 调回原始 PlayerRunCommand</b><span>物理系统最终决定实际速度和位移</span></div>
+      </div>
+    </div>
+
+    <div class="awper-paradox" role="note">
+      <div><b>All 锁开</b><span>AI 停止，CCSBot::Update 被跳过</span><strong>没有可覆盖的 usercmd</strong></div>
+      <div class="awper-versus">矛盾</div>
+      <div><b>All 锁关</b><span>usercmd 管线恢复</span><strong>但 AI 也重新参与生成命令</strong></div>
+    </div>
+  </section>
+
+  <section id="awper-roster" class="awper-panel" role="tabpanel" aria-labelledby="awper-tab-roster" hidden>
+    <div class="awper-roster-layout">
+      <svg class="awper-loop-svg" viewBox="0 0 720 400" role="img" aria-labelledby="awper-loop-title awper-loop-desc">
+        <title id="awper-loop-title">Bot 名单反馈循环</title>
+        <desc id="awper-loop-desc">插件设置 quota 零并添加 Bot，选中一个 slot 后逐 Tick 移除其他 Bot；若游戏模式或配额逻辑补充 Bot，就形成不断生成和移除的循环。</desc>
+        <defs>
+          <marker id="awper-arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="var(--muted-foreground)"></path></marker>
+          <marker id="awper-arrowhead-risk" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="var(--destructive)"></path></marker>
+        </defs>
+        <path class="awper-loop-line" d="M180 86 C300 30, 420 30, 540 86" marker-end="url(#awper-arrowhead)"></path>
+        <path class="awper-loop-line" d="M600 145 C660 220, 625 292, 535 315" marker-end="url(#awper-arrowhead)"></path>
+        <path class="awper-loop-line risk-line" d="M470 345 C335 390, 190 370, 130 285" marker-end="url(#awper-arrowhead-risk)"></path>
+        <path class="awper-loop-line risk-line" d="M95 225 C45 150, 75 95, 135 85" marker-end="url(#awper-arrowhead-risk)"></path>
+        <g transform="translate(60 55)"><rect class="awper-svg-node"></rect><text x="100" y="36" text-anchor="middle">bot_quota 0</text><text x="100" y="61" text-anchor="middle">bot_kick</text></g>
+        <g transform="translate(460 55)"><rect class="awper-svg-node"></rect><text x="100" y="36" text-anchor="middle">bot_add_t / ct</text><text x="100" y="61" text-anchor="middle">选择第一只 Bot</text></g>
+        <g transform="translate(460 280)"><rect class="awper-svg-node hot-node"></rect><text x="100" y="36" text-anchor="middle">每 Tick 扫描名单</text><text x="100" y="61" text-anchor="middle">bot.Remove(其他 slot)</text></g>
+        <g transform="translate(35 220)"><rect class="awper-svg-node risk-node"></rect><text x="100" y="31" text-anchor="middle">游戏模式 / quota</text><text x="100" y="55" text-anchor="middle">再次补充 Bot？</text><text x="100" y="76" text-anchor="middle">来源尚未隔离</text></g>
+        <text class="awper-svg-proof" x="360" y="210" text-anchor="middle">硬证据：旧日志在约 1 秒内连续移除 slot 2 → 63</text>
+      </svg>
+
+      <div class="awper-roster-facts">
+        <div class="awper-node danger"><strong>反应式控制</strong><span>不是“确保只有一个 Bot”，而是“发现多余 Bot 后再删除”。</span></div>
+        <div class="awper-node danger"><strong>共享全局状态</strong><span>bot_quota、game mode、回合事件和其他插件都可能重新拥有 Bot 生命周期。</span></div>
+        <div class="awper-node"><strong>当前保护不足</strong><span>训练开始时写一次 cvar；训练中没有验证 cvar 是否被改回，也没有识别 Bot 的真正生成来源。</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="awper-findings" class="awper-panel" role="tabpanel" aria-labelledby="awper-tab-findings" hidden>
+    <div class="awper-finding-list">
+      <div class="awper-finding critical"><span class="viz-badge">结构性风险</span><div><b>控制 Bot 依赖于“先让 Bot AI 自己运行”</b><p>All 锁会切断 usercmd 来源；关掉 All 锁才能注入移动，但同时恢复 AI。现在的方案本质上是借 AI 命令当载体，再局部覆盖它。</p></div></div>
+      <div class="awper-finding critical"><span class="viz-badge">已证实故障</span><div><b>Bot 生命周期出现正反馈循环</b><p>旧日志中 slot 2–63 连续生成/删除不是偶发小问题，而是“插件删除 ↔ 外部补充”两个控制器互相打架。</p></div></div>
+      <div class="awper-finding warning"><span class="viz-badge">语义错误</span><div><b>TargetSpeed 不是实际地速目标</b><p>代码只把它换算成 0–1 油门；没有用 CSV/实时速度做闭环修正。武器、加速度、地面和引擎上限才决定最终 units/s。</p></div></div>
+      <div class="awper-finding warning"><span class="viz-badge">观测盲区</span><div><b>token 创建成功不代表命令真正落到 Pawn</b><p>当前部署未导出 movement apply 次数、最终 forward/left、命中 slot 等关键计数，因此托管层返回 true 后仍可能完全不动。</p></div></div>
+      <div class="awper-finding neutral"><span class="viz-badge">尚待实证</span><div><b>新锁切换版是否已经让速度非零</b><p>最后两份 CSV 都来自修复前；现在只能证明逻辑路径“可能通”，不能证明新版已运动。</p></div></div>
+    </div>
+  </section>
+
+  <div class="sr-only" aria-live="polite" id="awper-view-status">当前显示：一轮训练</div>
+</div>
+
+<style>
+  #awper-runtime-logic { color: var(--foreground); width: 100%; overflow-wrap: anywhere; }
+  #awper-runtime-logic *, #awper-runtime-logic *::before, #awper-runtime-logic *::after { box-sizing: border-box; min-width: 0; }
+  #awper-runtime-logic h2 { margin-bottom: 12px; }
+  #awper-runtime-logic .viz-controls { margin-bottom: 18px; }
+  #awper-runtime-logic .awper-panel { min-height: 460px; }
+  #awper-runtime-logic .awper-lane-label { color: var(--muted-foreground); font-weight: 500; margin: 12px 0 8px; }
+  #awper-runtime-logic .awper-flow { display: grid; grid-template-columns: minmax(150px,1fr) auto minmax(190px,1.25fr) auto minmax(170px,1fr); gap: 10px; align-items: center; }
+  #awper-runtime-logic .awper-node, #awper-runtime-logic .awper-step { min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: color-mix(in srgb, var(--muted) 42%, transparent); display: grid; gap: 5px; }
+  #awper-runtime-logic .awper-node span, #awper-runtime-logic .awper-step span, #awper-runtime-logic .awper-state span, #awper-runtime-logic .awper-exit span { color: var(--muted-foreground); }
+  #awper-runtime-logic .awper-node.input { background: color-mix(in srgb, var(--viz-series-1) 14%, transparent); }
+  #awper-runtime-logic .awper-node.gate { background: color-mix(in srgb, var(--viz-series-3) 14%, transparent); }
+  #awper-runtime-logic .awper-node.action { background: color-mix(in srgb, var(--viz-series-2) 14%, transparent); }
+  #awper-runtime-logic .awper-node.danger { background: color-mix(in srgb, var(--destructive) 10%, transparent); }
+  #awper-runtime-logic .awper-arrow, #awper-runtime-logic .awper-chevron, #awper-runtime-logic .awper-down { color: var(--muted-foreground); text-align: center; font-weight: 500; }
+  #awper-runtime-logic .awper-state-strip { display: grid; grid-template-columns: 1.1fr auto .8fr auto .9fr auto 1.25fr auto .8fr auto .85fr; gap: 7px; align-items: stretch; }
+  #awper-runtime-logic .awper-state { min-width: 0; padding: 11px; border-top: 3px solid var(--border); background: color-mix(in srgb, var(--muted) 35%, transparent); display: flex; flex-direction: column; gap: 5px; }
+  #awper-runtime-logic .awper-state.hot { border-top-color: var(--viz-series-1); background: color-mix(in srgb, var(--viz-series-1) 12%, transparent); }
+  #awper-runtime-logic .awper-exit-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-top: 18px; }
+  #awper-runtime-logic .awper-exit { border-left: 3px solid var(--border); padding: 9px 12px; display: grid; gap: 5px; }
+  #awper-runtime-logic .awper-exit.danger { border-left-color: var(--destructive); }
+  #awper-runtime-logic .awper-pipeline { display: grid; grid-template-columns: minmax(0,1fr) 90px minmax(0,1fr); align-items: center; gap: 16px; }
+  #awper-runtime-logic .awper-column { display: grid; gap: 8px; }
+  #awper-runtime-logic .awper-step.hot { background: color-mix(in srgb, var(--viz-series-1) 13%, transparent); }
+  #awper-runtime-logic .awper-step.risk { border-color: var(--destructive); background: color-mix(in srgb, var(--destructive) 9%, transparent); }
+  #awper-runtime-logic .awper-bridge { color: var(--muted-foreground); display: grid; justify-items: center; gap: 6px; }
+  #awper-runtime-logic .awper-bridge b { color: var(--foreground); }
+  #awper-runtime-logic .awper-paradox { margin-top: 20px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: stretch; }
+  #awper-runtime-logic .awper-paradox > div:not(.awper-versus) { padding: 13px; border-left: 4px solid var(--destructive); background: color-mix(in srgb, var(--destructive) 9%, transparent); display: grid; gap: 6px; }
+  #awper-runtime-logic .awper-paradox span { color: var(--muted-foreground); }
+  #awper-runtime-logic .awper-versus { align-self: center; color: var(--destructive); font-weight: 500; }
+  #awper-runtime-logic .awper-roster-layout { display: grid; grid-template-columns: minmax(0,1.65fr) minmax(220px,.8fr); gap: 20px; align-items: center; }
+  #awper-runtime-logic .awper-loop-svg { width: 100%; min-height: 380px; }
+  #awper-runtime-logic .awper-loop-line { fill: none; stroke: var(--muted-foreground); stroke-width: 2; }
+  #awper-runtime-logic .awper-loop-line.risk-line { stroke: var(--destructive); }
+  #awper-runtime-logic .awper-svg-node { width: 200px; height: 90px; rx: 10px; fill: color-mix(in srgb, var(--muted) 55%, transparent); stroke: var(--border); }
+  #awper-runtime-logic .awper-svg-node.hot-node { fill: color-mix(in srgb, var(--viz-series-1) 15%, transparent); }
+  #awper-runtime-logic .awper-svg-node.risk-node { fill: color-mix(in srgb, var(--destructive) 11%, transparent); stroke: var(--destructive); }
+  #awper-runtime-logic .awper-loop-svg text { fill: var(--foreground); }
+  #awper-runtime-logic .awper-svg-proof { fill: var(--destructive); font-weight: 500; }
+  #awper-runtime-logic .awper-roster-facts { display: grid; gap: 12px; }
+  #awper-runtime-logic .awper-finding-list { display: grid; gap: 10px; }
+  #awper-runtime-logic .awper-finding { display: grid; grid-template-columns: 96px 1fr; gap: 14px; padding: 13px 0 13px 13px; border-left: 4px solid var(--border); }
+  #awper-runtime-logic .awper-finding.critical { border-left-color: var(--destructive); background: color-mix(in srgb, var(--destructive) 7%, transparent); }
+  #awper-runtime-logic .awper-finding.warning { border-left-color: var(--yellow); background: color-mix(in srgb, var(--yellow) 7%, transparent); }
+  #awper-runtime-logic .awper-finding.neutral { border-left-color: var(--muted-foreground); }
+  #awper-runtime-logic .awper-finding p { margin: 5px 0 0; color: var(--muted-foreground); }
+  #awper-runtime-logic .viz-badge { align-self: start; justify-self: start; }
+  @media (max-width: 720px) {
+    #awper-runtime-logic .awper-panel { min-height: 0; }
+    #awper-runtime-logic .awper-flow, #awper-runtime-logic .awper-state-strip { grid-template-columns: 1fr; }
+    #awper-runtime-logic .awper-arrow { transform: rotate(90deg); }
+    #awper-runtime-logic .awper-chevron { transform: rotate(90deg); padding: 2px; }
+    #awper-runtime-logic .awper-exit-grid, #awper-runtime-logic .awper-pipeline, #awper-runtime-logic .awper-paradox, #awper-runtime-logic .awper-roster-layout { grid-template-columns: 1fr; }
+    #awper-runtime-logic .awper-bridge { grid-template-columns: auto auto auto; justify-content: center; }
+    #awper-runtime-logic .awper-versus { text-align: center; }
+    #awper-runtime-logic .awper-loop-svg { min-height: 300px; }
+    #awper-runtime-logic .awper-finding { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
+
+<script>
+(() => {
+  const root = document.getElementById('awper-runtime-logic');
+  const buttons = [...root.querySelectorAll('[data-view]')];
+  const panels = [...root.querySelectorAll('[role="tabpanel"]')];
+  const labels = { overall: '一轮训练', movement: '底层移动', roster: 'Bot 生成循环', findings: '问题判断' };
+  buttons.forEach(button => button.addEventListener('click', () => {
+    const selected = button.dataset.view;
+    buttons.forEach(item => {
+      const active = item === button;
+      item.setAttribute('aria-selected', String(active));
+      item.classList.toggle('btn-primary', active);
+    });
+    panels.forEach(panel => { panel.hidden = panel.id !== `awper-${selected}`; });
+    root.querySelector('#awper-view-status').textContent = `当前显示：${labels[selected]}`;
+  }));
+})();
+</script>

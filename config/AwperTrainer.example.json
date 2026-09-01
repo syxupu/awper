@@ -1,0 +1,14 @@
+{
+  "ConfigVersion": 1,
+  "EnableMotionCsv": false,
+  "MotionCsvSampleEveryTicks": 1,
+  "AllowedMaps": [
+    "de_dust2",
+    "de_inferno",
+    "de_mirage",
+    "de_anubis",
+    "de_ancient",
+    "de_nuke",
+    "de_cache"
+  ]
+}

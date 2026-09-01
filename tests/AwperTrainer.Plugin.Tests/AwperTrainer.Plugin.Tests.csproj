@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.373">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <ProjectReference Include="../../src/AwperTrainer.Plugin/AwperTrainer.Plugin.csproj" />
+    <ProjectReference Include="../../src/BotControllerApi.Contract/BotControllerApi.Contract.csproj" />
+    <ProjectReference Include="../../src/RayTraceApi.Contract/RayTraceApi.Contract.csproj" />
+    <None Include="../../assets/panorama/layout/custom_game/awper_hud.xml" Link="awper_hud.xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../assets/awper_hud.vjs_c" Link="awper_hud.vjs_c" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../assets/panorama/layout/custom_game/awper_hud.vxml_c" Link="awper_hud.vxml_c" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../assets/panorama/styles/custom_game/awper_hud.vcss_c" Link="awper_hud.vcss_c" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

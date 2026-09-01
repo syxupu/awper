@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="src/AwperTrainer.Core/AwperTrainer.Core.csproj" />
+  <Project Path="src/BotControllerApi.Contract/BotControllerApi.Contract.csproj" />
+  <Project Path="src/RayTraceApi.Contract/RayTraceApi.Contract.csproj" />
+  <Project Path="src/AwperTrainer.Plugin/AwperTrainer.Plugin.csproj" />
+  <Project Path="tests/AwperTrainer.Core.Tests/AwperTrainer.Core.Tests.csproj" />
+  <Project Path="tests/AwperTrainer.Plugin.Tests/AwperTrainer.Plugin.Tests.csproj" />
+</Solution>

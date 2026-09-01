@@ -1,0 +1,84 @@
+<root>
+    <styles>
+        <include src="file://{resources}/styles/custom_game/awper_hud.css" />
+    </styles>
+
+    <Panel class="Root">
+        <Panel id="menu" class="Hidden">
+            <Panel class="Header">
+                <Panel>
+                    <Label class="Eyebrow" text="AWPER TRAINER" />
+                    <Label class="Title" text="训练控制台" />
+                    <Label class="Subtitle" text="选择操作后面板自动关闭 · F5 可随时重新打开" />
+                </Panel>
+                <Button id="close_button" class="CloseButton"><Label text="×" /></Button>
+            </Panel>
+
+            <Panel class="Content">
+                <Panel class="Column MainColumn">
+                    <Label class="SectionTitle" text="训练" />
+                    <Button id="start_button" class="ActionButton Primary"><Label text="开始下一轮" /></Button>
+                    <Button id="preview_button" class="ActionButton"><Label text="切换摄像机预览" /></Button>
+                    <Panel class="ButtonRow">
+                        <Button id="abort_button" class="ActionButton Half Danger"><Label text="终止" /></Button>
+                        <Button id="status_button" class="ActionButton Half"><Label text="状态" /></Button>
+                    </Panel>
+                    <Panel class="ButtonRow">
+                        <Button id="list_button" class="ActionButton Half"><Label text="配置列表" /></Button>
+                        <Button id="load_first_button" class="ActionButton Half"><Label text="加载首项" /></Button>
+                    </Panel>
+
+                    <Label class="SectionTitle Spaced" text="移动模式" />
+                    <Panel class="ButtonRow">
+                        <Button id="mode_direct_button" class="Chip Half"><Label text="直接横拉" /></Button>
+                        <Button id="mode_jiggle_button" class="Chip Half"><Label text="小身位 + 横拉" /></Button>
+                    </Panel>
+                    <Label class="Hint" text="持 AK 正常走速：215 u/s" />
+                    <Panel class="ButtonRow Three">
+                        <Button id="speed_150_button" class="Chip Third"><Label text="150" /></Button>
+                        <Button id="speed_180_button" class="Chip Third"><Label text="180" /></Button>
+                        <Button id="speed_215_button" class="Chip Third Selected"><Label text="215" /></Button>
+                    </Panel>
+                </Panel>
+
+                <Panel class="Divider" />
+
+                <Panel class="Column SetupColumn">
+                    <Label class="SectionTitle" text="点位设置" />
+                    <Label class="Hint" text="按顺序站到对应位置并点击" />
+                    <Panel class="ButtonGrid">
+                        <Button id="set_edit_button" class="GridButton"><Label text="1  编辑入口" /></Button>
+                        <Button id="set_player_button" class="GridButton"><Label text="2  玩家锚点" /></Button>
+                        <Button id="set_start_button" class="GridButton"><Label text="3  Bot 起点" /></Button>
+                        <Button id="set_end_button" class="GridButton"><Label text="4  Bot 终点" /></Button>
+                        <Button id="set_jiggle_button" class="GridButton"><Label text="5  小身位点" /></Button>
+                        <Button id="set_facing_button" class="GridButton"><Label text="6  Bot 朝向" /></Button>
+                    </Panel>
+                    <Panel class="ButtonRow Spaced">
+                        <Button id="validate_button" class="ActionButton Half"><Label text="验证点位" /></Button>
+                        <Button id="save_quick_button" class="ActionButton Half Primary"><Label text="快速保存" /></Button>
+                    </Panel>
+                    <Label class="Hint" text="快速保存名称：hud_angle" />
+                </Panel>
+
+                <Panel class="Divider" />
+
+                <Panel class="Column MapColumn">
+                    <Label class="SectionTitle" text="地图池" />
+                    <Label class="Hint" text="切图需要管理员权限" />
+                    <Button id="map_dust2_button" class="MapButton"><Label text="01  DUST II" /></Button>
+                    <Button id="map_inferno_button" class="MapButton"><Label text="02  INFERNO" /></Button>
+                    <Button id="map_mirage_button" class="MapButton"><Label text="03  MIRAGE" /></Button>
+                    <Button id="map_anubis_button" class="MapButton"><Label text="04  ANUBIS" /></Button>
+                    <Button id="map_ancient_button" class="MapButton"><Label text="05  ANCIENT" /></Button>
+                    <Button id="map_nuke_button" class="MapButton"><Label text="06  NUKE" /></Button>
+                    <Button id="map_cache_button" class="MapButton"><Label text="07  CACHE" /></Button>
+                </Panel>
+            </Panel>
+
+            <Panel class="Footer">
+                <Label text="聊天帮助：!help    ·    打开面板：!ui    ·    地图列表：!maps" />
+            </Panel>
+        </Panel>
+    </Panel>
+</root>
