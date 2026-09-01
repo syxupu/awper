@@ -10,7 +10,11 @@ AWPER 是一个用于 **Counter-Strike 2 专用服务器**的 AWP 横拉训练�
 
 ## 演示
 
-提供一段粗糙的演示视频：[demo.mp4](demo.mp4)。
+一段粗糙的演示视频（54 秒，720p）：
+
+<video src="https://github.com/user-attachments/assets/68693f21-b31c-4248-b14e-ac5f8e521b01" controls width="100%"></video>
+
+完整分辨率原片：[demo.mp4](demo.mp4)。
 
 ## 主要功能
 

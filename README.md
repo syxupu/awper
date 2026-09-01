@@ -10,7 +10,11 @@ Current version: **1.1.0**
 
 ## Demo
 
-A rough, unpolished demo video is available: [demo.mp4](demo.mp4).
+A rough, unpolished demo (54 s, 720p):
+
+<video src="https://github.com/user-attachments/assets/68693f21-b31c-4248-b14e-ac5f8e521b01" controls width="100%"></video>
+
+Full-resolution original: [demo.mp4](demo.mp4).
 
 ## Main features
 
